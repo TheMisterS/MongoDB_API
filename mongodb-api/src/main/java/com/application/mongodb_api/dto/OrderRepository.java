@@ -6,7 +6,5 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ClientRepository extends MongoRepository<Client,String>{
-    @Query(sort = "{ '_clientId': -1 }")
-    List<Client> findTopByOrderByIdDesc();
+public interface OrderRepository extends MongoRepository<Order,String>{
 }

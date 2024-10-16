@@ -3,10 +3,7 @@ package com.application.mongodb_api;
 import java.util.List;
 import java.util.Optional;
 
-import com.application.mongodb_api.dto.Client;
-import com.application.mongodb_api.dto.ClientRepository;
-import com.application.mongodb_api.dto.Product;
-import com.application.mongodb_api.dto.ProductRepository;
+import com.application.mongodb_api.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +17,9 @@ public class APIController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @PostMapping("/clients")
     public ResponseEntity<String> addClient(@RequestBody Client client) {
@@ -100,10 +100,36 @@ public class APIController {
         Optional<Product> product = productRepository.findById(productID);
         if(product.isPresent()){
             productRepository.deleteById(productID);
-            return new ResponseEntity<>("Product with the ID" + productID + "was deleted successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Product with the ID" + productID + " was deleted successfully", HttpStatus.OK);
         }else{
             return new ResponseEntity<>("Product with the ID " + productID + " was not found.", HttpStatus.NOT_FOUND);
         }
+    }
+
+    @PutMapping("/orders")
+    public ResponseEntity<String> addOrder(@RequestBody Order order){
+
+        if(order.getClientID() == null || order.getClientID().isBlank()){
+            return new ResponseEntity<>("Invalid input, client ID is missing", HttpStatus.BAD_REQUEST);
+        }
+        if(order.getItems().isEmpty()){
+            return new ResponseEntity<>("Invalid input, order items are missing", HttpStatus.BAD_REQUEST);
+        }
+        Optional<Client> client = clientRepository.findById(order.getClientID());
+
+        if(client.isEmpty()){
+            return new ResponseEntity<>("Client with the ID " + order.getClientID() + " was not found.", HttpStatus.NOT_FOUND);
+        }
+        orderRepository.save(order);
+
+        for(OrderItem item : order.getItems()){
+            Optional<Product> product = productRepository.findById(item.getProductId());
+            if (product.isEmpty()){
+                return new ResponseEntity<>("Product with ID " + item.getProductId() + " was not found.", HttpStatus.NOT_FOUND);
+            }
+}
+        return new ResponseEntity<>("Order created with the ID: " + order.getID(), HttpStatus.OK); //returns 200 -> OK
+
     }
 
 }
