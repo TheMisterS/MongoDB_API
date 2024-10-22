@@ -12,6 +12,8 @@ import com.application.mongodb_api.aggregation.TopProducts;
 import com.application.mongodb_api.aggregation.TotalValue;
 import com.application.mongodb_api.dto.*;
 
+import com.application.mongodb_api.utility.GenerateRandom;
+import com.application.mongodb_api.utility.ItemID;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -47,7 +49,7 @@ public class APIController {
     }
 
     @PostMapping("/clients")
-    public ResponseEntity<String> addClient(@RequestBody Client client) {
+    public ResponseEntity<?> addClient(@RequestBody Client client) {
         
         if(client.getEmail() == null || client.getEmail().isBlank()){
             return new ResponseEntity<>("Invalid input, email is missing or blank", HttpStatus.BAD_REQUEST);
@@ -55,17 +57,14 @@ public class APIController {
         if(client.getName() == null || client.getName().isBlank()){
             return new ResponseEntity<>("Invalid input, Name is missing or blank", HttpStatus.BAD_REQUEST);
         }
-
+        if(client.getId() == null || client.getId().isBlank()){ // generates ID if it is not entered
+            GenerateRandom random = new GenerateRandom();
+            client.setId(String.valueOf(random.generateRandomInt()));
+        }
         clientRepository.save(client);
-        List<Client> latestClient = clientRepository.findTopByOrderByIdDesc();
-        /*
-        int clientID = latestClient.getFirst().getCounterPartOfHexID();
 
-        System.out.println(latestClient);
-
-         */
-        return new ResponseEntity<>("Client registered with the ID: " + latestClient.getFirst().getId(), HttpStatus.OK); //returns 200 -> OK
-
+        ItemID indexItem = new ItemID(client.getId());
+        return new ResponseEntity<>(indexItem, HttpStatus.CREATED); //returns 200 -> OK
 
     }
 
@@ -92,7 +91,7 @@ public class APIController {
     }
 
     @PutMapping("/products")
-    public ResponseEntity<String> addProduct(@RequestBody Product product) {
+    public ResponseEntity<?> addProduct(@RequestBody Product product) {
 
         if(product.getName() == null || product.getName().isBlank()){
             return new ResponseEntity<>("Invalid input, email is missing or blank", HttpStatus.BAD_REQUEST);
@@ -100,10 +99,14 @@ public class APIController {
         if(product.getPrice() == 0){
             return new ResponseEntity<>("Invalid input, price is missing", HttpStatus.BAD_REQUEST);
         }
+        if(product.getId() == null || product.getId().isBlank()){
+            GenerateRandom random = new GenerateRandom();
+            product.setId(String.valueOf(random.generateRandomInt()));
+        }
 
         productRepository.save(product);
-
-        return new ResponseEntity<>("Product registered(or appended) with the ID: " + product.getId(), HttpStatus.OK); //returns 200 -> OK
+        ItemID indexItem = new ItemID(product.getId());
+        return new ResponseEntity<>(indexItem, HttpStatus.CREATED); //returns 200 -> OK
 
     }
     // Optionally implement category's
@@ -134,7 +137,7 @@ public class APIController {
     }
 
     @PutMapping("/orders")
-    public ResponseEntity<String> addOrder(@RequestBody Order order){
+    public ResponseEntity<?> addOrder(@RequestBody Order order){
 
         
         if(order.getClientID() == null || order.getClientID().isBlank()){
@@ -148,16 +151,21 @@ public class APIController {
         if(client.isEmpty()){
             return new ResponseEntity<>("Client with the ID " + order.getClientID() + " was not found.", HttpStatus.NOT_FOUND);
         }
-        orderRepository.save(order);
+        if(order.getID() == null || order.getID().isBlank()){
+            GenerateRandom random = new GenerateRandom();
+            order.setID(String.valueOf(random.generateRandomInt()));
+        }
 
         for(OrderItem item : order.getItems()){
             Optional<Product> product = productRepository.findById(item.getProductId());
             if (product.isEmpty()){
                 return new ResponseEntity<>("Product with ID " + item.getProductId() + " was not found.", HttpStatus.NOT_FOUND);
             }
-}
-        return new ResponseEntity<>("Order created with the ID: " + order.getID(), HttpStatus.OK); //returns 200 -> OK
+        }
+        orderRepository.save(order);
 
+        ItemID indexItem = new ItemID(order.getID());
+        return new ResponseEntity<>(indexItem, HttpStatus.CREATED); //returns 200 -> OK
     }
 
     @GetMapping("/clients/{clientID}/orders")
