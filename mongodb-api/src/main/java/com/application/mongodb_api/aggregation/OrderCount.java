@@ -1,13 +1,13 @@
 package com.application.mongodb_api.aggregation;
 
 public class OrderCount {
-    private int totalOrders;
+    private int total;
 
-    public int getTotalOrders() {
-        return totalOrders;
+    public int getTotal() {
+        return total;
     }
 
-    public void setTotalOrders(int totalOrders) {
-        this.totalOrders = totalOrders;
+    public void setTotal(int total) {
+        this.total = total;
     }   
 }

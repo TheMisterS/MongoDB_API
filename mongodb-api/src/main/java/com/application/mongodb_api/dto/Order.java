@@ -11,12 +11,12 @@ public class Order {
     @Id
     String id;
 
-    String clientID;
+    String clientId;
     List<OrderItem> items;
 
-    public Order(String ID, String clientID, List<OrderItem> items) {
+    public Order(String ID, String clientId, List<OrderItem> items) {
         this.id = ID;
-        this.clientID = clientID;
+        this.clientId = clientId;
         this.items = items;
     }
 
@@ -31,12 +31,12 @@ public class Order {
         this.id = orderId;
     }
 
-    public String getClientID() {
-        return clientID;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClientID(String clientID) {
-        this.clientID = clientID;
+    public void setClientID(String clientId) {
+        this.clientId = clientId;
     }
 
     public List<OrderItem> getItems() {
@@ -46,5 +46,5 @@ public class Order {
     public void setOrderProducts(List<OrderItem> items) {
         this.items = items;
     }
-   
+
 }

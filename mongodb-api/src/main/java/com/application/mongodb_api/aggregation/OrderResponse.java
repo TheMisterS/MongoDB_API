@@ -11,11 +11,11 @@ public class OrderResponse {
     
     
 
-    private String clientID;
+    private String clientId;
     private List<OrderItem> items;
 
-    public OrderResponse(String clientID, List<OrderItem> items) {
-        this.clientID = clientID;
+    public OrderResponse(String clientId, List<OrderItem> items) {
+        this.clientId = clientId;
         this.items = items;
     }
 
@@ -24,12 +24,12 @@ public class OrderResponse {
 
   
 
-    public String getClientID() {
-        return clientID;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClientID(String clientID) {
-        this.clientID = clientID;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     public List<OrderItem> getItems() {

@@ -7,6 +7,6 @@ import java.util.List;
 
 @Repository
 public interface ClientRepository extends MongoRepository<Client,String>{
-    @Query(sort = "{ '_clientId': -1 }")
+    @Query(sort = "{ 'id': -1 }")
     List<Client> findTopByOrderByIdDesc();
 }

@@ -44,16 +44,4 @@ public class Client {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    public int getCounterPartOfHexID(){
-
-        // integer counter portion extraction(last 3 bytes) from  mongoDB ID HexCode
-        // String clientHexID = latestClient.getFirst().getId();
-        String lastThreeBytesHex = this.id.substring(this.id.length() - 6);
-        int ClientIdCounterPart = Integer.parseInt(lastThreeBytesHex, 16);
-        return ClientIdCounterPart;
-
-    }
-
-
 }

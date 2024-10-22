@@ -48,7 +48,7 @@ public class APIController {
         this.mongoTemplate = mongoTemplate;
     }
 
-    @PostMapping("/clients")
+    @PutMapping("/clients")
     public ResponseEntity<?> addClient(@RequestBody Client client) {
         
         if(client.getEmail() == null || client.getEmail().isBlank()){
@@ -68,14 +68,14 @@ public class APIController {
 
     }
 
-    @GetMapping("/clients/{clientID}")
-    public ResponseEntity<?> getClientByID(@PathVariable String clientID){
-        Optional<Client> client = clientRepository.findById(clientID);
+    @GetMapping("/clients/{clientId}")
+    public ResponseEntity<?> getClientByID(@PathVariable String clientId){
+        Optional<Client> client = clientRepository.findById(clientId);
          
         if(client.isPresent()){
-            return new ResponseEntity<>(clientRepository.findById(clientID), HttpStatus.OK);
+            return new ResponseEntity<>(client.get(), HttpStatus.OK);
         }else{
-            return new ResponseEntity<>("Client with the ID " + clientID + " was not found.", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Client with the ID " + clientId + " was not found.", HttpStatus.NOT_FOUND);
         }
     }
 
@@ -84,7 +84,7 @@ public class APIController {
         Optional<Client> client = clientRepository.findById(clientID);
         if(client.isPresent()){
             clientRepository.deleteById(clientID);
-            return new ResponseEntity<>("Client with the ID" + clientID + "was deleted successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Client with the ID" + clientID + "was deleted successfully", HttpStatus.NO_CONTENT);
         }else{
             return new ResponseEntity<>("Client with the ID " + clientID + " was not found.", HttpStatus.NOT_FOUND);
         }
@@ -94,7 +94,7 @@ public class APIController {
     public ResponseEntity<?> addProduct(@RequestBody Product product) {
 
         if(product.getName() == null || product.getName().isBlank()){
-            return new ResponseEntity<>("Invalid input, email is missing or blank", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Invalid input, email is missing or blank", HttpStatus.NO_CONTENT);
         }
         if(product.getPrice() == 0){
             return new ResponseEntity<>("Invalid input, price is missing", HttpStatus.BAD_REQUEST);
@@ -109,12 +109,22 @@ public class APIController {
         return new ResponseEntity<>(indexItem, HttpStatus.CREATED); //returns 200 -> OK
 
     }
-    // Optionally implement category's
-    @GetMapping("/products")
-    public List<Product> getAllProducts() {
-        return  productRepository.findAll();
-    }
 
+    @GetMapping("/products")
+    public ResponseEntity<?> getProducts(@RequestParam(required = false) String category) {
+        List<Product> products;
+        if(category != null && !category.isBlank()) {
+            products = productRepository.findByCategory(category);
+        } else {
+            products = productRepository.findAll();
+        }
+
+        if(products.isEmpty()) {
+            return new ResponseEntity<>("No products found.", HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
     @GetMapping("/products/{productID}")
     public ResponseEntity<?> getProductByID(@PathVariable String productID){
         Optional<Product> product = productRepository.findById(productID);
@@ -124,13 +134,12 @@ public class APIController {
             return new ResponseEntity<>("Product with the ID " + productID + " was not found.", HttpStatus.NOT_FOUND);
         }
     }
-
     @DeleteMapping("/products/{productID}")
     public ResponseEntity<?> deleteProductByID(@PathVariable String productID){
         Optional<Product> product = productRepository.findById(productID);
         if(product.isPresent()){
             productRepository.deleteById(productID);
-            return new ResponseEntity<>("Product with the ID" + productID + " was deleted successfully", HttpStatus.OK);
+            return new ResponseEntity<>("Product with the ID" + productID + " was deleted successfully", HttpStatus.NO_CONTENT);
         }else{
             return new ResponseEntity<>("Product with the ID " + productID + " was not found.", HttpStatus.NOT_FOUND);
         }
@@ -140,16 +149,16 @@ public class APIController {
     public ResponseEntity<?> addOrder(@RequestBody Order order){
 
         
-        if(order.getClientID() == null || order.getClientID().isBlank()){
+        if(order.getClientId() == null || order.getClientId().isBlank()){
             return new ResponseEntity<>("Invalid input, client ID is missing", HttpStatus.BAD_REQUEST);
         }
         if(order.getItems().isEmpty()){
             return new ResponseEntity<>("Invalid input, order items are missing", HttpStatus.BAD_REQUEST);
         }
-        Optional<Client> client = clientRepository.findById(order.getClientID());
+        Optional<Client> client = clientRepository.findById(order.getClientId());
 
         if(client.isEmpty()){
-            return new ResponseEntity<>("Client with the ID " + order.getClientID() + " was not found.", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Client with the ID " + order.getClientId() + " was not found.", HttpStatus.NOT_FOUND);
         }
         if(order.getID() == null || order.getID().isBlank()){
             GenerateRandom random = new GenerateRandom();
@@ -168,22 +177,22 @@ public class APIController {
         return new ResponseEntity<>(indexItem, HttpStatus.CREATED); //returns 200 -> OK
     }
 
-    @GetMapping("/clients/{clientID}/orders")
-    public ResponseEntity<?> getClientOrders(@PathVariable String clientID) {
+    @GetMapping("/clients/{clientId}/orders")
+    public ResponseEntity<?> getClientOrders(@PathVariable String clientId) {
 
-        Optional<Client> client = clientRepository.findById(clientID);
+        Optional<Client> client = clientRepository.findById(clientId);
         if(client.isEmpty()) {
-            return new ResponseEntity<>("Client with ID " + clientID + " was not found.", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Client with ID " + clientId + " was not found.", HttpStatus.NOT_FOUND);
         }
 
         Aggregation aggregation = Aggregation.newAggregation(
-            Aggregation.match(Criteria.where("clientID").is(clientID)),
+            Aggregation.match(Criteria.where("clientId").is(clientId)),
             Aggregation.unwind("items"),
-            Aggregation.group("clientID")
-                .first("clientID").as("clientID")
+            Aggregation.group("clientId")
+                .first("clientId").as("clientId")
                 .push("items").as("items"),
             Aggregation.project()
-                .and("clientID").as("clientID")
+                .and("clientId").as("clientId")
                 .and("items").as("items")
         );
 
@@ -191,7 +200,7 @@ public class APIController {
         List<OrderResponse> aggregatedOrders = result.getMappedResults(); 
 
         if (aggregatedOrders.isEmpty()) {
-            return new ResponseEntity<>("No orders found for client with ID " + clientID, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("No orders found for client with ID " + clientId, HttpStatus.NOT_FOUND);
         }
             
         return new ResponseEntity<>(aggregatedOrders, HttpStatus.OK);
@@ -207,7 +216,7 @@ public class APIController {
         }
 
         Aggregation aggregation = Aggregation.newAggregation(
-            Aggregation.group("clientID").count().as("totalOrders"), // group by clientID and count orders
+            Aggregation.group("clientId").count().as("totalOrders"), // group by clientID and count orders
             Aggregation.sort(Sort.Direction.DESC, "totalOrders"),
             Aggregation.limit(10),
             Aggregation.project().and("_id").as("clientID").andInclude("totalOrders")        
@@ -250,12 +259,12 @@ public class APIController {
         }
 
         Aggregation aggregation = Aggregation.newAggregation(
-            Aggregation.group().count().as("totalOrders")
+            Aggregation.group().count().as("total")
         );
 
         AggregationResults<OrderCount> results = mongoTemplate.aggregate(aggregation, "order", OrderCount.class);
         
-        return new ResponseEntity<>(results.getMappedResults(), HttpStatus.OK);
+        return new ResponseEntity<>(results.getUniqueMappedResult(), HttpStatus.OK);
     }
 
     @GetMapping("/statistics/orders/totalValue")
@@ -277,7 +286,13 @@ public class APIController {
 
         AggregationResults<TotalValue> results = mongoTemplate.aggregate(aggregation, "order", TotalValue.class);
         
-        return new ResponseEntity<>(results.getMappedResults(), HttpStatus.OK);
+        return new ResponseEntity<>(results.getUniqueMappedResult(), HttpStatus.OK);
+    }
+
+    @PostMapping("/cleanup")
+    public ResponseEntity<?> cleanupDatabase() {
+        mongoTemplate.getDb().drop();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }
