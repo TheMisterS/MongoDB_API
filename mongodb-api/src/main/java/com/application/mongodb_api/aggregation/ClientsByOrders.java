@@ -1,24 +1,32 @@
 package com.application.mongodb_api.aggregation;
 
 public class ClientsByOrders {
-    private String clientID;
+    private String id;
+    private String name;
     private long totalOrders;
 
     // Constructors
     public ClientsByOrders() {}
 
-    public ClientsByOrders(String clientID, long totalOrders) {
-        this.clientID = clientID;
+    public ClientsByOrders(String id, long totalOrders) {
+        this.id = id;
         this.totalOrders = totalOrders;
     }
 
-    // Getters and Setters
-    public String getClientID() {
-        return clientID;
+    public String getName() {
+        return name;
     }
 
-    public void setClientID(String clientId) {
-        this.clientID = clientId;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public long getTotalOrders() {

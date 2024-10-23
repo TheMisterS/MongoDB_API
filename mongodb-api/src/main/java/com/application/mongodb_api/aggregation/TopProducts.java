@@ -2,9 +2,9 @@ package com.application.mongodb_api.aggregation;
 
 public class TopProducts {
     private String productId;
+    private String name;
     private long quantity;
 
-    // Constructors
     public TopProducts() {}
 
     public TopProducts(String productId, long quantity) {
@@ -12,7 +12,14 @@ public class TopProducts {
         this.quantity = quantity;
     }
 
-    // Getters and Setters
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getProductId() {
         return productId;
     }

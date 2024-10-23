@@ -219,7 +219,12 @@ public class APIController {
             Aggregation.group("clientId").count().as("totalOrders"), // group by clientID and count orders
             Aggregation.sort(Sort.Direction.DESC, "totalOrders"),
             Aggregation.limit(10),
-            Aggregation.project().and("_id").as("clientID").andInclude("totalOrders")        
+            Aggregation.lookup("client", "_id", "_id", "clientDetails"), // join with Product collection
+            Aggregation.unwind("clientDetails"), // unwind to access fields of the product
+            Aggregation.project()
+                    .and("_id").as("id")
+                    .and("clientDetails.name").as("name")
+                    .andInclude("totalOrders")
         );  
 
         AggregationResults<ClientsByOrders> results = mongoTemplate.aggregate(aggregation, "order", ClientsByOrders.class);
@@ -244,7 +249,12 @@ public class APIController {
                 .as("quantity"), 
             Aggregation.sort(Sort.Direction.DESC, "quantity"),
             Aggregation.limit(10),
-            Aggregation.project().and("_id").as("productId").andInclude("quantity")
+            Aggregation.lookup("product", "_id", "_id", "productDetails"), // join with Product collection
+            Aggregation.unwind("productDetails"), // unwind to access fields of the product
+            Aggregation.project()
+                .and("_id").as("productId")
+                .and("productDetails.name").as("name")
+                .andInclude("quantity")
         );
 
         AggregationResults<TopProducts> results = mongoTemplate.aggregate(aggregation, "order", TopProducts.class);
